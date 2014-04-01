@@ -5,7 +5,7 @@ This cookbook will disable the tcp offloading settings of the NIC.
 
 Requirements
 ------------
-windows (for the Windows-tcp-offloading)
+The cookbook depends on the windows cookbook
 
 
 Attributes
