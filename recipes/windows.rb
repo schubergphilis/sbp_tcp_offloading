@@ -17,32 +17,27 @@
 # limitations under the License.
 #
 
-if platform?('windows')
+# only apply to Windows 2008R2
+
+if platform?('windows') && node['platform_version'].split('.')[0..1].join('.') = '6.1'
   ::Chef::Recipe.send(:include, Windows::Helper)
   netsh = locate_sysnative_cmd('netsh.exe')
 
-  case node['platform_version'].split('.')[0..1].join('.')
+  registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Tcpip\Parameters' do
+    values [{:name => 'EnableRSS', :type => :dword, :data => 0},
+            {:name => 'EnableTCPChimney', :type => :dword, :data => 0},
+            {:name => 'EnableTCPA', :type => :dword, :data => 0},
+            {:name => 'DisableTaskOffload', :type => :dword, :data => 1}]
+    action :create
+    notifies :run, 'batch[netsh_commands]', :immediately
+  end
 
-    # Only apply Windows 2008R2 specific settings
-    when '6.1'
-
-    registry_key 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Tcpip\Parameters' do
-      values [{:name => 'EnableRSS', :type => :dword, :data => 0},
-              {:name => 'EnableTCPChimney', :type => :dword, :data => 0},
-              {:name => 'EnableTCPA', :type => :dword, :data => 0},
-              {:name => 'DisableTaskOffload', :type => :dword, :data => 1}]
-      action :create
-      notifies :run, 'batch[netsh_commands]', :immediately
-    end
-
-    batch "netsh_commands" do
-      code <<-EOH
-        #{netsh} interface tcp set global chimney=disabled
-        #{netsh} int ip set global taskoffload=disabled
-      EOH
-      action :nothing
-    end
-
+  batch "netsh_commands" do
+    code <<-EOH
+      #{netsh} interface tcp set global chimney=disabled
+      #{netsh} int ip set global taskoffload=disabled
+    EOH
+    action :nothing
   end
 
 end
