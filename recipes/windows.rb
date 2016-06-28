@@ -19,7 +19,7 @@
 
 # only apply to Windows 2008R2
 
-if platform?('windows') && node['platform_version'].split('.')[0..1].join('.') = '6.1'
+if platform?('windows') && node['platform_version'].split('.')[0..1].join('.') == '6.1'
   ::Chef::Recipe.send(:include, Windows::Helper)
   netsh = locate_sysnative_cmd('netsh.exe')
 
